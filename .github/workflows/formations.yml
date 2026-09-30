@@ -93,15 +93,15 @@ jobs:
         with:
           pattern: formation-*
           path: dist
-
+          
       - name: Deploy artifacts to web root
         run: |
           for artifact in dist/formation-*/; do
             [ -d "$artifact" ] || continue
             slug=$(basename "$artifact")
             slug=${slug#formation-}
-            sudo mkdir -p "/var/www/formations/$slug"
-            sudo rsync -a --delete "$artifact" "/var/www/formations/$slug/"
+            mkdir -p "/var/www/formations/$slug"
+            rsync -a --delete "$artifact" "/var/www/formations/$slug/"
           done
 
       - name: Generate index page
@@ -117,5 +117,4 @@ jobs:
               echo "<li><a href=\"$slug/\">${title:-$slug}</a></li>"
             done
             echo '</ul></body></html>'
-          } | sudo tee /var/www/formations/index.html > /dev/null
-          sudo chown -R www-data:www-data /var/www/formations
+          } > /var/www/formations/index.html
