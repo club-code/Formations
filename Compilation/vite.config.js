@@ -14,5 +14,10 @@ const reloadOnMarkdown = {
 };
 
 export default defineConfig({
+  // Chemins relatifs : la formation est servie sous formations.clubcode.fr/<slug>/
+  base: './',
   plugins: [reloadOnMarkdown],
+  preview: {
+    allowedHosts: ['formations.clubcode.fr'],
+  },
 });

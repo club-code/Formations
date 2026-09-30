@@ -1,0 +1,121 @@
+name: Formations
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  detect:
+    name: List formations
+    runs-on: ubuntu-latest
+    outputs:
+      formations: ${{ steps.list.outputs.formations }}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: List formations
+        id: list
+        run: |
+          formations=$(for dir in */; do
+            dir=${dir%/}
+            [ -f "$dir/package.json" ] || continue
+            jq -c --arg dir "$dir" 'select(.scripts.build) | {dir: $dir, slug: (.slug // ($dir | ascii_downcase))}' "$dir/package.json"
+          done | jq -sc .)
+          echo "$formations"
+          echo "formations=$formations" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build ${{ matrix.dir }}
+    needs: detect
+    if: needs.detect.outputs.formations != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.detect.outputs.formations) }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.dir }}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            corepack enable
+            pnpm install --frozen-lockfile
+            echo "PM=pnpm" >> "$GITHUB_ENV"
+          elif [ -f package-lock.json ]; then
+            npm ci
+            echo "PM=npm" >> "$GITHUB_ENV"
+          else
+            npm install
+            echo "PM=npm" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build
+        run: $PM run build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: formation-${{ matrix.slug }}
+          path: ${{ matrix.dir }}/dist/
+
+  deploy:
+    name: Deploy formations.clubcode.fr
+    needs: [detect, build]
+    if: ${{ !cancelled() && needs.detect.result == 'success' && needs.build.result != 'skipped' }}
+    runs-on: [self-hosted, formations]
+    timeout-minutes: 5
+    concurrency:
+      group: formations-production-deploy
+      cancel-in-progress: false
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: formation-*
+          path: dist
+
+      - name: Deploy artifacts to web root
+        run: |
+          for artifact in dist/formation-*/; do
+            [ -d "$artifact" ] || continue
+            slug=$(basename "$artifact")
+            slug=${slug#formation-}
+            sudo mkdir -p "/var/www/formations/$slug"
+            sudo rsync -a --delete "$artifact" "/var/www/formations/$slug/"
+          done
+
+      - name: Generate index page
+        run: |
+          {
+            echo '<!doctype html><html lang="fr"><head><meta charset="utf-8">'
+            echo '<meta name="viewport" content="width=device-width, initial-scale=1">'
+            echo '<title>Formations</title></head><body><h1>Formations</h1><ul>'
+            for page in /var/www/formations/*/index.html; do
+              [ -f "$page" ] || continue
+              slug=$(basename "$(dirname "$page")")
+              title=$(sed -n 's:.*<title>\(.*\)</title>.*:\1:p' "$page" | head -n 1)
+              echo "<li><a href=\"$slug/\">${title:-$slug}</a></li>"
+            done
+            echo '</ul></body></html>'
+          } | sudo tee /var/www/formations/index.html > /dev/null
+          sudo chown -R www-data:www-data /var/www/formations
