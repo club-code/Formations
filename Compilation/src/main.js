@@ -7,6 +7,7 @@ import 'reveal.js/reset.css';
 import 'reveal.js/reveal.css';
 import 'reveal.js/theme/black.css';
 import 'reveal.js/plugin/highlight/monokai.css';
+import './style.css';
 
 const deck = new Reveal({
   hash: true,

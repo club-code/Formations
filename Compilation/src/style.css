@@ -1,0 +1,73 @@
+/* Styles communs aux slides de la formation */
+
+:root {
+  --accent: #42affa;
+  --ok: #7bd88f;
+  --ko: #ff6b6b;
+  --box: #1e2a38;
+}
+
+.reveal .small { font-size: 0.8em; }
+.reveal .big { font-size: 1.6em; font-weight: bold; }
+.reveal .desc { font-size: 0.7em; margin: 0.3em 0 0.5em; }
+.reveal .error { color: var(--ko); font-family: var(--r-code-font); font-size: 0.6em; }
+
+/* Colonnes */
+.reveal .cols { display: flex; gap: 1em; align-items: flex-start; }
+.reveal .cols > * { flex: 1; min-width: 0; }
+.reveal .cols > .grow { flex: 2; }
+.reveal .cols > .scope { flex: 1.5; }
+.reveal .cols pre { width: 100%; }
+
+/* Code plus petit pour les longs listings */
+.reveal .small-code pre { font-size: 0.38em; }
+.reveal .tiny-code pre { width: 100%; font-size: 0.32em; margin: 0.3em auto; }
+.reveal .small-code pre code,
+.reveal .tiny-code pre code { max-height: none; }
+.reveal .tiny-code h2 { margin-bottom: 0.2em; }
+.reveal .errors pre { font-size: 0.55em; }
+
+/* Portées imbriquées */
+.reveal .scope {
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  padding: 0.3em 0.6em;
+  text-align: left;
+  font-size: 0.75em;
+}
+.reveal .scope.inner { border-color: var(--ok); margin: 0.3em 0; font-size: 1em; }
+.reveal .scope code { display: block; }
+.reveal .scope-label { font-size: 0.7em; opacity: 0.7; }
+.reveal .symbols { font-size: 0.75em; }
+.reveal .types { font-size: 0.8em; }
+
+/* Front-end / middle-end / back-end */
+.reveal .pipeline { display: flex; align-items: center; justify-content: center; gap: 0.5em; font-size: 0.9em; }
+.reveal .stage { border: 2px solid #888; border-radius: 8px; padding: 0.4em 0.8em; line-height: 1.3; }
+.reveal .stage.accent { border-color: var(--accent); background: var(--box); }
+
+/* Graphe de flot de contrôle */
+.reveal svg.cfg { width: 100%; height: auto; max-height: 480px; }
+.cfg rect { fill: var(--box); stroke: var(--accent); stroke-width: 2; rx: 8; }
+.cfg text { text-anchor: middle; font-family: monospace; }
+.cfg .name { fill: var(--accent); font-size: 18px; }
+.cfg .code { fill: #eee; font-size: 22px; }
+.cfg path { fill: none; stroke: #bbb; stroke-width: 2; marker-end: url(#cfg-arrow); }
+.cfg .head { fill: #bbb; stroke: none; }
+.cfg .label { fill: #bbb; font-size: 17px; font-family: sans-serif; text-anchor: start; }
+.cfg path.yes { stroke: var(--ok); }
+.cfg path.no { stroke: var(--ko); }
+.cfg text.yes { fill: var(--ok); }
+.cfg text.no { fill: var(--ko); }
+
+/* Suite des passes d'optimisation */
+.reveal .passes { font-size: 0.5em; margin: 0.4em 0; }
+.reveal .pass {
+  font-family: var(--r-code-font);
+  border: 2px solid #666;
+  border-radius: 6px;
+  padding: 0.1em 0.4em;
+  opacity: 0.6;
+}
+.reveal .pass.done { border-color: var(--ok); }
+.reveal .pass.current { border-color: var(--accent); background: var(--box); opacity: 1; }
