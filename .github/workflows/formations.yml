@@ -71,11 +71,16 @@ jobs:
       - name: Build
         run: $PM run build
 
+      - name: Stage artifact
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/site"
+          cp -r dist "$GITHUB_WORKSPACE/site/${{ matrix.slug }}"
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
           name: formation-${{ matrix.slug }}
-          path: ${{ matrix.dir }}/dist/
+          path: site/
 
   deploy:
     name: Deploy formations.clubcode.fr
@@ -88,21 +93,32 @@ jobs:
       cancel-in-progress: false
 
     steps:
+      - name: Clean workspace
+        run: rm -rf site dist
+
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
           pattern: formation-*
-          path: dist
-          
+          path: site
+          merge-multiple: true
+
       - name: Deploy artifacts to web root
         run: |
-          for artifact in dist/formation-*/; do
-            [ -d "$artifact" ] || continue
-            slug=$(basename "$artifact")
-            slug=${slug#formation-}
+          deployed=0
+          for dir in site/*/; do
+            [ -f "$dir/index.html" ] || continue
+            slug=$(basename "$dir")
             mkdir -p "/var/www/formations/$slug"
-            rsync -a --delete "$artifact" "/var/www/formations/$slug/"
+            rsync -a --delete "$dir" "/var/www/formations/$slug/"
+            echo "Déployé : /$slug/"
+            deployed=$((deployed + 1))
           done
+          if [ "$deployed" -eq 0 ]; then
+            echo "Aucune formation trouvée dans site/ :"
+            find site -maxdepth 2
+            exit 1
+          fi
 
       - name: Generate index page
         run: |
