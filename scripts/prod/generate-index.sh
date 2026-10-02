@@ -52,10 +52,11 @@ while IFS=$'\t' read -r year date slug; do
     current=$year
     cards=""
     year_count=0
+    year_total=$(awk -F'\t' -v y="$year" '$1 == y { print $2 }' <<<"$years")
   fi
   count=$((count + 1))
   year_count=$((year_count + 1))
-  num=$(printf '%02d' "$year_count")
+  num=$(printf '%02d' $((year_total - year_count + 1)))
   title=$(info "$slug" '.title // ""')
   [ -n "$title" ] || title=$(sed -n 's:.*<title>\(.*\)</title>.*:\1:p' "$root/$slug/index.html" | head -n 1)
   title=${title:-$slug}
