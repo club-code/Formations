@@ -1,0 +1,4 @@
+pdf.js 6.3.289 (pdfjs-dist), Apache-2.0 — https://github.com/mozilla/pdf.js
+Fichiers repris de build/ et wasm/ du paquet npm, sans modification.
+pdf.min.mjs et pdf.worker.min.mjs sont renommés en .js pour être servis
+avec un type MIME JavaScript par toutes les versions de nginx.

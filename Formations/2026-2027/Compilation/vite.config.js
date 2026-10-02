@@ -1,7 +1,5 @@
 import { defineConfig } from 'vite';
 
-// reveal.js charge les slides .md une seule fois au chargement de la page :
-// on recharge la page entière quand l'un d'eux change.
 const reloadOnMarkdown = {
   name: 'reload-on-markdown',
   configureServer(server) {
@@ -14,7 +12,6 @@ const reloadOnMarkdown = {
 };
 
 export default defineConfig({
-  // Chemins relatifs : la formation est servie sous formations.clubcode.fr/<slug>/
   base: './',
   plugins: [reloadOnMarkdown],
   preview: {
